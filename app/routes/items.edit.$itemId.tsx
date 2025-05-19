@@ -160,6 +160,22 @@ export default function EditItem() {
         >
           Update Item
         </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            if (confirm("Are you sure you want to delete this item?")) {
+              fetch(`/items/${item._id}`, {
+                method: "DELETE",
+              }).then(() => {
+                window.location.href = "/";
+              });
+            }
+          }}
+          className="w-full bg-red-600 text-white px-4 py-2 rounded-lg shadow hover:bg-red-700 transition"
+        >
+          Delete
+        </button>
       </Form>
     </div>
   );

@@ -1,5 +1,10 @@
-import { LoaderFunction, json } from "@remix-run/node";
-import { Link, useLoaderData, MetaFunction } from "@remix-run/react";
+import {
+  ActionFunction,
+  LoaderFunction,
+  json,
+  redirect,
+} from "@remix-run/node";
+import { Link, useLoaderData, MetaFunction, Form } from "@remix-run/react";
 import { Item } from "~/model/item.server";
 import { connectDB } from "~/utils/db.server";
 
@@ -37,6 +42,26 @@ export const loader: LoaderFunction = async ({ params }) => {
   }
 };
 
+export const action: ActionFunction = async ({ request, params }) => {
+  if (request.method !== "DELETE") {
+    throw new Response("Method not allowed", { status: 405 });
+  }
+
+  try {
+    await connectDB();
+    const item = await Item.findByIdAndDelete(params.itemId);
+
+    if (!item) {
+      throw new Response("Item not found", { status: 404 });
+    }
+
+    return redirect("/");
+  } catch (error) {
+    if (error instanceof Response) throw error;
+    throw new Response("Error deleting item", { status: 500 });
+  }
+};
+
 export default function ItemDetail() {
   const { item } = useLoaderData<typeof loader>();
 
@@ -51,6 +76,19 @@ export default function ItemDetail() {
           >
             Edit
           </Link>
+          <Form method="delete">
+            <button
+              type="submit"
+              className="text-red-600 hover:text-red-800"
+              onClick={(e) => {
+                if (!confirm("Are you sure you want to delete this item?")) {
+                  e.preventDefault();
+                }
+              }}
+            >
+              Delete
+            </button>
+          </Form>
           <Link to="/" className="text-blue-600 hover:text-blue-800">
             ← Back to Items
           </Link>
